@@ -1,0 +1,27 @@
+#! /bin/csh
+set sampleid  = "Karoonda-10  14 mg"                                                  
+ 
+# Plot variables for Br and Ba               
+# step1 is the grid spacing in mT            
+set step1     =     1.00
+# stepx is the width of the reversible       
+#   ridge set to 0.                          
+set stepx     =     5.00
+# stepM is used for gridding the FORC        
+#   distribution inside the hysteresis loop. 
+set stepM     =     .008
+ 
+# filt is the width of the Gaussian filter   
+#   used for smoothing the data (in mT)      
+set filt      =       14
+ 
+# Plot variables for bias (Hb)               
+#   and for coercivity (Hc).                 
+set Hb1       =      -50
+set Hb2       =       50
+set Hc1       =        0
+set Hc2       =      100
+set scaleHc   = +4.2E-02
+set scaleHb   = +4.2E-02
+set ticFORC   = a2.0E+01f4.0E+00g200000
+ 

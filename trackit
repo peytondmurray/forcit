@@ -1,0 +1,67 @@
+#! /bin/sh
+# Written by Gary Acton 25 April 2006
+
+# Define APPL to be the directory in which the folder "forc" is stored.
+APPL=/Applications/Local/src
+#APPL=/Users/acton/Applications/src
+
+echo "**********************************************************************"
+echo " Given two endpoints within a FORC diagram, this program              "
+echo " (1) produces a track (track.out),                                    "
+echo " (2) uses grdtrack to extract the FORC distribution along this        "
+echo "     track (track.xy) from a GMT grid file called rhodxdyrn.grd       "
+echo "     that was produced by program forcit,                             "
+echo " (3) plots the track using GMT.                                       "
+echo " converted to Unix format.  It then produces 9 plots that are         "
+echo " placed in the directory named ForcPlots, which will be created       "
+echo " if it does not already exist. The plots produced are:                "
+echo "    track.out = The track where (x,y) = (coercivity, interaction)     "
+echo "    track.xy = The observations along the track.                      "
+echo "       1st column x = coercivity                                      "
+echo "       2nd column y = interaction                                     "
+echo "       3rd column d = distance along the track                        "
+echo "       4th column rho = forc distribuution                            "
+echo "    track.ps = the PostScript plot file (coercivity or                "
+echo "                                         interaction  vs. rho)        "
+echo " "
+echo "TRACKIT HELP "
+echo "To run program trackit, type the word 'trackit' followed by a space"
+echo "and then the coordinates of the end points for the track, e.g.,    "
+echo "     trackit 0.0 10.0 120.0 0.0 1.0             "
+echo "where the first to numbers are X1,Y1 the second two numbers are X2,Y2"
+echo "and the last number is the interval."
+echo "trackit -h           <-- gives this help message "
+echo " "
+
+echo "**********************************************************************"
+
+help()
+{
+  echo " "
+  echo "To run program trackit, type the word 'trackit' followed by a space"
+  echo "and then the coordinates of the end points for the track, e.g.,    "
+  echo "     trackit 0.0 10.0 120.0 0.0 1.0             "
+  echo "where the first to numbers are X1,Y1 the second two numbers are X2,Y2"
+  echo "and the last number is the interval."
+  echo "trackit -h           <-- gives this help message "
+  echo " "
+}
+
+trackgeneric()
+{
+  track -s $X1 $Y1 $X2 $Y2 $DD
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.track
+  cat $APPL/forc/track.gmt >> gmt.track
+  chmod a+x gmt.track
+  gmt.track
+}
+
+# The following script is based on the example given in the Shell programming web site:
+# http://mercury.chem.pitt.edu/~sasha/LinuxFocus/English/September2001/article216.shtml
+
+while [ -n "$1" ]; do
+case $1 in
+    -h) help;shift 1;; # function help is called
+    *) X1=$1; Y1=$2; X2=$3; Y2=$4; DD=$5;trackgeneric;shift 5;; # case with five arguments -> shift by 5
+esac
+done

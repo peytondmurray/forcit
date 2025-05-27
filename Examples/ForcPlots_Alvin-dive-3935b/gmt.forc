@@ -1,0 +1,508 @@
+#! /bin/csh
+set sampleid  = "Alvin-dive-3935 Glass chip off large piece (a small pillow)"         
+ 
+# Plot variables for Br and Ba               
+# step1 is the grid spacing in mT            
+set step1     =     2.00
+# stepx is the width of the reversible       
+#   ridge set to 0.                          
+set stepx     =    10.00
+# stepM is used for gridding the FORC        
+#   distribution inside the hysteresis loop. 
+set stepM     =     .010
+ 
+# filt is the width of the Gaussian filter   
+#   used for smoothing the data (in mT)      
+set filt      =       36
+ 
+# Plot variables for Br and Ba               
+set bdryHr2   =      130
+set bdryHr1   =     -710
+set bdryHa2   =      740
+set bdryHa1   =     -700
+set scaleHa   = +3.5E-03
+set scaleHr   = +3.5E-03
+set ticH      = a2.0E+02f4.0E+01g200000
+ 
+# Plot variables for Y-axis of drift curve   
+set bdryD2    =     1.02
+set bdryD1    =      .99
+set scaleD    =   166.67
+set ticD      = a0.01f0.01
+ 
+# Plot variables for X-axis of drift curve   
+set bdryF2    =      140
+set bdryF1    =        0
+set scaleF    =      .04
+set ticF      = a20f10
+ 
+# Plot variables for Quasi-reversible ridge  
+set ridgeH1   =   -690.0
+set ridgeH2   =    114.0
+set Rrho1     =      .01
+set Rrho2     =     1.00
+set scaleRb   =  6.2E-03
+set scaleRrho = +5.0E+00
+set ticRb     = a1.0E+02f2.0E+01g200000
+set ticRrho   = a0.25f0.05g20000     
+set Ridgemin  = +6.6E-06
+set Ridgemax  = +7.5E-04
+ 
+# Plot variables for moment                  
+set bdryM2    =        1
+set bdryM1    =       -1
+set scaleM    = +2.5E+00
+set ticM      = a0.5f0.1g2000        
+set Mnorm     = +1.9E-07
+ 
+# Plot variables for normalized FORC         
+#   distribution (rho).                      
+set Rho2      =        1
+set Rho1      =      -.1
+set scaleRho  =      2.5
+set ticRho    =   a1f0.5             
+ 
+# Plot variables for bias (Hb)               
+#   and for coercivity (Hc).                 
+set Hb1       =      -90
+set Hb2       =       90
+set Hc1       =        0
+set Hc2       =      590
+set scaleHc   = +8.3E-03
+set scaleHb   = +8.3E-03
+set ticFORC   = a1.0E+02f2.0E+01g200000
+ 
+# Plot variables for view angles of 3d plot  
+set ViewAng1  = 130/20               
+set ViewAng2  =  50/20               
+ 
+ # Ndecimate is used in determining how  many FORCs to show for the B-vs-M and   the B-vs-M_forc2d plots.               
+#    Every Nth=Ndecimate FORC is plotted.    
+set Ndecimate =      5               
+ 
+set filename  =  Alvin-dive-3935b.frc
+cp /Users/acton/Applications/src/forc/.gmtdefaults .
+cp /Users/acton/Applications/src/forc/cont_int .
+echo '******************************************'
+echo '       Starting to make plots             '
+echo '******************************************'
+
+# *********** Plot raw FORC data ***********
+# Plot raw FORC data
+forcdecimate -n $Ndecimate < H-vs-M.out | psxy -R$bdryHa1/$bdryHa2/$bdryM1/$bdryM2 -Jx$scaleHa/$scaleM \
+   -B$ticH\ :"B (mT)"::,"":/$ticM\ :"M (A m@+2@+)"::,""::."FORC Paths in Hysteresis Space":WeSn \
+   -W1 -M -P -K -X1.0 -Y1.0 > fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Maximum Moment:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "2.4 7.7 14 0 0 LB " $Mnorm " Am@+2@+" >> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps B-vs-M.ps
+
+# Plot where observations were obtained in Ba-vs-Br space
+psxy Ha-vs-Hr.out -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -Jx$scaleHa/$scaleHr \
+   -B$ticH\ :"Ba (mT)"::,"":/$ticH\ :"Br (mT)"::,""::."FORC Paths in Magnetic Field Space":WeSn \
+   -W1 -M -P -K -X1.0 -Y1.0 > fig.ps
+# To plot a symbol at every observation, remove the pound (#) from the line below
+#psxy -R -Jx -Sc0.01 -G255/000/000 -M -P -K -O Ha-vs-Hr.out >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps Ba-vs-Br.ps
+
+echo 'Figures B-vs-M.ps and Ba-vs-Br.ps are done'
+
+# *********** Plot Moment Drift ***********
+cat drift.out | awk '{ printf ("%s %s\n", $1, $2) }' | \
+   psxy -R$bdryF1/$bdryF2/$bdryD1/$bdryD2 -Jx$scaleF/$scaleD \
+   -B$ticF\ :"FORC #"::,"":/$ticD\ :"Relative Drift"::,""::."Drift of Moment (red) & Variation of Field (blue)":WeSn \
+   -W4/000/000/255 -M -P -K -X1.0 -Y1.0 > fig.ps
+cat drift.raw | awk '{ printf ("%s %s\n", $1, $3) }' | \
+   psxy -R$bdryF1/$bdryF2/$bdryD1/$bdryD2 -Jx$scaleF/$scaleD \
+   -W2/000/000/000 -M -O -K  >> fig.ps
+cat drift.out | awk '{ printf ("%s %s\n", $1, $3) }' | \
+   psxy -R$bdryF1/$bdryF2/$bdryD1/$bdryD2 -Jx$scaleF/$scaleD \
+   -B$ticF\ :" "::,"":/$ticD\ :" "::,""::." ":WeSn \
+   -W4/255/000/000 -M -O -K  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps drift.ps
+
+echo 'Figure drift.ps is done'
+
+# *********** Plot Quasi-Reversible Ridge ***********
+cat rridge.out | awk '{ printf ("%s %s\n", $1, $4) }' | \
+   psxy -R$ridgeH1/$ridgeH2/$Rrho1/$Rrho2 -Jx$scaleRb/$scaleRrho \
+   -B$ticRb\ :"Bias (mT)"::,"":/$ticRrho\ :"Rho"::,""::."Quasi-Reversible Ridge":WeSn \
+   -W4/000/000/000 -M -P -K -X1.0 -Y1.0 > fig.ps
+cat rridge.out | awk '{ printf ("%s %s\n", $1, $4) }' | \
+   psxy -R$ridgeH1/$ridgeH2/$Rrho1/$Rrho2 -Jx$scaleRb/$scaleRrho \
+   -Sc0.06 -G255/000/000 -M -P -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File: 
+0.5 8.0 14 0 0 LB Sample: 
+0.5 7.7 14 0 0 LB Rho Max: 
+0.5 7.4 14 0 0 LB Rho Min: 
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $Ridgemax " Am@+2@+/mT@+2@+">> text.xy
+echo "1.4 7.4 14 0 0 LB " $Ridgemin " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps reversible-ridge.ps
+
+echo 'Figure reversible-ridge.ps is done'
+
+# *********** Triangulate Data ***********
+triangulate Ha-vs-Hr-vs-M.out -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -I$step1 -V -Gtri.grd -M > tripath.xyz
+grd2xyz tri.grd -H > tri.xyz
+grdinfo tri.grd
+grd2cpt tri.grd -S-1/1/0.1 > color.cpt
+grdgradient tri.grd -A75 -Ne0.5 -Gintens.grd
+grdview tri.grd -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -Jx$scaleHa/$scaleHr -Ccolor.cpt -Iintens.grd -Qi100 \
+   -B$ticH\ :"Ba (mT)"::,"":/$ticH\ :"Br (mT)"::,""::."Moment Variation":WeSn \
+   -P -K -X1.0 -Y1.0 > fig.ps
+# If you ever want to see the triangulation paths, then remove the pound (#) from the line below (See GMT manual for more info) 
+#psxy -R -Jx -W1 -G255/000/000 -M -P -K -O tripath.xyz >> fig.ps
+psscale -D+4.3i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Moment":/:"  ": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Maximum Moment:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "2.4 7.7 14 0 0 LB " $Mnorm " Am@+2@+" >> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps Ba-vs-Br_moment.ps
+echo 'Figure Ba-vs-Br_moment.ps is done'
+
+# *********** Filter data ***********
+# Note the filter is a 2D Gaussian filter with radius =  0.5*$filt or diameter = $filt (diameter ~ 5 sigma; see GMT manual). 
+grdfilter tri.grd -Gfilt.grd -D0 -Fg$filt
+# Two lines below are tests with further filtering, which proved not to be useful
+#grdfft filt.grd -F-/-/$Xfilt2/$Xfilt1 -L -V -Gfiltx.grd
+#mv filtx.grd filt.grd
+grd2xyz filt.grd -H  > filt.xyz
+
+################################################################
+echo '******************************************'
+echo '       Taking partial derivatives'
+echo '******************************************'
+
+zerodiag -s $stepx > zero.xy
+grdmask zero.xy -Gzero.grd -I$step1 -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -H1 -N1/0/0 
+grdfilter zero.grd -Gzerofilt.grd -D0 -Fg$stepx
+
+# NOTE, rhodx.grd is the Micro Susceptibility and is plotted below.
+grdmath filt.grd DDX -V = rhodx.grd
+
+grdmath rhodx.grd DDY zerofilt.grd MUL -V = rhodxdy.grd
+# Filter again with the same filter as above, but on rho rather than moment
+grdfilter rhodxdy.grd -Grhodxdyf.grd -D0 -Fg$filt
+mv rhodxdyf.grd rhodxdy.grd
+grdinfo rhodxdy.grd
+# WAIT TO PLOT IN ORDER TO FIND GOOD NORMALIZATION FACTOR
+################################################################
+
+
+################################################################
+#********** Find where rho plots in hysteresis space **********
+echo '******************************************'
+echo '     Finding Rho in Hysteresis Space'
+echo '******************************************'
+grd2xyz rhodxdy.grd -H > rhodxdy.xyz
+cat tri.xyz     | awk '{ printf ("%s %s\n", $1, $3) }' > junk1 
+cat rhodxdy.xyz | awk '{ printf ("%s %s\n", $1, $3) }' > junk2 
+join -j 1 junk1 junk2 > junk3
+xyz2grd junk3 -R$bdryHa1/$bdryHa2/$bdryM1/$bdryM2 -I$step1/$stepM -DmT/Am@+2@+/Rho/1/0/"FORC This"/"FORC Distribution" -Gjunk3.grd
+# WAIT TO PLOT IN ORDER TO FIND GOOD NORMALIZATION FACTOR
+################################################################
+
+
+################################################################
+echo '******************************************'
+echo 'Transforming the FORC Data into Bc-vs-Bb space'
+echo '******************************************'
+head -1 rhodxdy.xyz > ga2
+sed 1d rhodxdy.xyz | sed -e 1,10000000000s/\	/\ /g | awk '{ printf ("%#13.6e %#13.6e %#13.6e\n", $1, $2, $3) }' >> ga2
+newcoord < ga2 > rhodxdyr.xyz
+surface rhodxdyr.xyz -R-$stepx/$Hc2/$Hb1/$Hb2 -I$step1 -T0.50 -H -Grhodxdyr.grd
+
+# The following filtering is used only to find a Maximum for scaling the plot
+grdsample -R$stepx/$Hc2/$Hb1/$Hb2 rhodxdyr.grd -I$step1 -Gsfilt.grd
+grdmath sfilt.grd ABS = sfilt2.grd
+grd2xyz sfilt2.grd -H -S > sfilt2.xyz
+set r = `minmax sfilt2.xyz -C -H -I$step1`
+echo Minimum $r[5]
+echo Maximum $r[6]
+# NOTE, the 1/2 factor below is needed to define rho in a manner consistent with
+#      equation (1) of Pike (Physical Review B, 68, 2003).
+#      Prior publications left out the 1/2 factor that occurs in Eqn 1.
+#      The factor is necessary to equate FORC distributions to Preisach distributions
+#      for hysterons. Because I normalize the distribution for plotting, this factor
+#      only affects the value printed for the maximum rho, which is the
+#      variable s[2] rather than r[6].
+echo $r[5] | awk '{ print $1/2.0 } ' > temprho
+echo $r[6] | awk '{ print $1/2.0 } ' >> temprho
+set s = `minmax temprho -C`
+set Pike = "after correction for factor of 1/2 in equation 1 of Pike (Physical Review B, 68, 2003)."
+echo Minimum $s[1] $Pike 
+echo Maximum $s[2] $Pike
+rm temprho
+
+grdmath rhodxdyr.grd $r[6] DIV -1.0 MUL = filt4.grd
+grdclip filt4.grd -Grhodxdyrn.grd -Sa1.01/1.01 -Sb-0.2/-0.2 
+grdinfo rhodxdyrn.grd
+
+# Define color palette, which is used for all other Forc diagrams (2D, 3D, Hysteresis space, etc.)
+grd2cpt rhodxdyrn.grd -Z > color.cpt
+grdgradient rhodxdyrn.grd -A50 -Ne0.5 -Gintens.grd
+grdview rhodxdyrn.grd -R$Hc1/$Hc2/$Hb1/$Hb2 -Jx$scaleHc/$scaleHb -Ccolor.cpt -Iintens.grd -Qi100 \
+   -B$ticFORC\ :"B@-c@- (mT)"::,"":/$ticFORC\ :"B@-b@- (mT)"::,""::."FORC Diagram":WeSn \
+   -P -K -X1.0 -Y1.0 > fig.ps
+grdcontour rhodxdyrn.grd -Ccont_int -R -Jx -O -K -S4 >> fig.ps
+psscale -D+3.9i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Rho":/:"  ": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps forc2D.ps
+echo 'Figure forc2D.ps done'
+
+# *********** Plot FORC in 3D ***********
+grdview rhodxdyrn.grd -R$Hc1/$Hc2/$Hb1/$Hb2/$Rho1/$Rho2 -Jx$scaleHc/$scaleHb \
+   -Jz$scaleRho -Ccolor.cpt -Iintens.grd -E$ViewAng1 -Qi100 \
+   -B$ticFORC\ :"B@-c@- (mT)"::,"":/$ticFORC\ :"B@-b@- (mT)"::,"":/$ticRho\ :"Rho"::,""::."FORC Diagram":wESnZ \
+   -P -K -X1.0 -Y1.0 > fig.ps
+# For a 3D image with the mesh use -Qsm above
+# For a 3D image without the mesh and much smaller in size use -Qi100 above
+# Next three lines are an attempt to subsampling to reduce the plot size: 
+#   grdsample -R$Hc1/$Hc2/$Hb1/$Hb2 rhodxdyrn.grd -I$step3 -Grhodxdyrns.grd
+#   grdview rhodxdyrns.grd -R$Hc1/$Hc2/$Hb1/$Hb2/$Rho1/$Rho2 -Jx$scaleHc/$scaleHb \
+#     -Jz$scaleRho -Ccolor.cpt -E$ViewAng1 -Qsm/100/000/055 -P -K -O >> fig.ps
+# Grid contouring below the 3D plot can be accomplished with the line below
+#grdcontour rhodxdyrn.grd -Ccont_int -R -Jx -Jz -E$ViewAng1 -O -K -S4 >> fig.ps
+psscale -D+5.5i/+4.0i/2.0i/0.2i  -Ba0.5f0.1:" ":/:"Rho": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps forc3D-a.ps
+
+grdgradient rhodxdyrn.grd -A130 -Ne0.5 -Gintens.grd
+# For a different intensity grid, try the line below
+#  grdgradient rhodxdyrn.grd -A115 -Ne0.5 -Gintens.grd
+grdview rhodxdyrn.grd -R$stepx/$Hc2/$Hb1/$Hb2/$Rho1/$Rho2 -Jx$scaleHc/$scaleHb \
+   -Jz$scaleRho -Ccolor.cpt -Iintens.grd -E$ViewAng2 -Qi100 \
+   -B$ticFORC\ :"B@-c@- (mT)"::,"":/$ticFORC\ :"B@-b@- (mT)"::,"":/$ticRho\ :"Rho"::,""::."FORC Diagram":wEsNZ \
+   -P -K -X1.0 -Y1.0 > fig.ps
+# Grid contouring below the 3D plot can be accomplished with the line below
+#grdcontour rhodxdyrn.grd -Ccont_int -R -Jx -Jz -E$ViewAng2 -O -K -S4 >> fig.ps
+psscale -D+0.40i/+4.0i/2.0i/0.2i  -Ba0.5f0.1:" ":/:"Rho": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps forc3D-b.ps
+
+
+# *********** Plot FORC Distribution in Hysteresis space ***********
+grdmath junk3.grd $r[6] DIV -1.0 MUL = junk.grd
+grdclip junk.grd -Grhohys.grd -Sa1.01/1.01 -Sb-0.2/-0.2 
+
+# Do not re-make the color palette, just use the one above for a common color palette for all Forc diagrams
+# grd2cpt rhohys.grd  > color.cpt
+grdgradient rhohys.grd -A75 -Gintens.grd -Ne0.5 
+
+grdview rhohys.grd -R$bdryHa1/$bdryHa2/$bdryM1/$bdryM2 -Jx$scaleHa/$scaleM \
+   -B$ticH\ :"B (mT)"::,"":/$ticM\ :"M (Am@+2@+)"::,""::."FORC Distribution":WeSn \
+   -Ccolor.cpt -Iintens.grd -Qi72 -P -K -X1.0 -Y1.0 > fig.ps
+grdcontour rhohys.grd -Ccont_int -R -Jx -O -K -S4 >> fig.ps
+#psxy H-vs-M.out -R -Jx -Sc0.01 -G255/255/255 -K -O -M >> fig.ps 
+# Now get every 10th FORC and plot
+forcdecimate -n $Ndecimate < H-vs-M.out | psxy -R -Jx -W3/255/255/255 -K -O -M >> fig.ps 
+forcdecimate -n $Ndecimate < H-vs-M.out | psxy -R -Jx -W2 -K -O -M >> fig.ps 
+psscale -D+3.9i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Rho":/:"  ": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps B-vs-M_forc2D.ps
+echo 'Figure B-vs-M_forc2D.ps done'
+
+# The command below makes a 3D version of the FORC distribution in hysteresis space
+#grdview rhohys.grd -R$bdryHa1/$bdryHa2/$bdryM1/$bdryM2 -Jx$scaleHa/$scaleM -Jz2.00 -E-60/30 \
+#   -B$ticH\ :"B (mT)"::,"":/$ticM\ :"M (Am@+2@+)"::," ":/$ticRho\ :"Rho"::,""::."FORC Diagram":WeSn \
+#   -Ccolor.cpt -Iintens.grd -Qi100 -P -K -X1.0 -Y1.0 > forc-this.ps
+#pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> forc-this.ps
+#END
+
+grdmath rhodxdy.grd $r[6] DIV -1.0 MUL  = rhodxdyn.grd
+
+# Do not re-make the color palette, just use the one above for a common color palette for all Forc diagrams
+# grd2cpt rhodxdyn.grd > color.cpt
+grdgradient rhodxdyn.grd -A090 -Ne0.5 -Gintens.grd
+grdview rhodxdyn.grd -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -Jx$scaleHa/$scaleHr -Ccolor.cpt -Iintens.grd -Qi300 \
+   -B$ticH\ :"Ba (mT)"::,"":/$ticH\ :"Br (mT)"::,""::."FORC Diagram":WeSn \
+   -P -K -X1.0 -Y1.0 > fig.ps
+#grdcontour rhodxdyn.grd -Ccont_int -R -Jx -O -K -S4 >> fig.ps
+psscale -D+3.9i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Rho":/:"  ": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps Ba-vs-Br_forc2D.ps
+
+################################################################
+echo '******************************************'
+echo 'Transforming the Susceptibility Data into Bc-vs-Bb space'
+echo '******************************************'
+grd2xyz rhodx.grd -H > rhodx.xyz
+head -1 rhodx.xyz > ga2
+sed 1d rhodx.xyz | sed -e 1,10000000000s/\	/\ /g | awk '{ printf ("%#13.6e %#13.6e %#13.6e\n", $1, $2, $3) }' >> ga2
+newcoord < ga2 > rhodxr.xyz
+surface rhodxr.xyz -R-$stepx/$Hc2/$Hb1/$Hb2 -I$step1 -T0.50 -H -Grhodxr.grd
+
+# *********** Plot Micro Susceptibility Distribution in Hb vs Hc space ***********
+# The following filtering is used only to find a Maximum for scaling the plot
+set s = `minmax rhodxr.xyz -C -H -I$step1`
+echo Minimum $s[5]
+echo Maximum $s[6]
+grdmath rhodxr.grd $s[6] DIV = filt5.grd
+grdclip filt5.grd -Grhodxrn.grd -Sa1.01/1.01 -Sb-0.2/-0.2 
+grdinfo rhodxrn.grd
+
+# Define color palette
+grd2cpt rhodxrn.grd -Z > color2.cpt
+grdgradient rhodxrn.grd -A50 -Ne0.5 -Gintens.grd
+grdview rhodxrn.grd -R$Hc1/$Hc2/$Hb1/$Hb2 -Jx$scaleHc/$scaleHb -Ccolor2.cpt -Iintens.grd -Qi100 \
+   -B$ticFORC\ :"B@-c@- (mT)"::,"":/$ticFORC\ :"B@-b@- (mT)"::,""::."Micro Susceptibility":WeSn \
+   -P -K -X1.0 -Y1.0 > fig.ps
+grdcontour rhodxrn.grd -Ccont_int -R -Jx -O -K -S4 >> fig.ps
+psscale -D+3.9i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Susc":/:"  ": -Ccolor2.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Susc Max:  
+0.5 7.4 14 0 0 LB Susc Min:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[6] " Am@+2@+/mT">> text.xy
+echo "1.4 7.4 14 0 0 LB " $s[5] " Am@+2@+/mT">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps susc.ps
+echo 'Figure susc.ps done'
+
+mkdir ForcPlots
+mv gmt.forc ForcPlots
+#mv H-vs-M.out ForcPlots
+#mv Ha-vs-Hr.out ForcPlots
+#mv Ha-vs-Hr-vs-M.out ForcPlots
+#mv rridge.out ForcPlots
+#mv drift.out ForcPlots
+mv drift.ps ForcPlots
+mv reversible-ridge.ps ForcPlots
+mv B-vs-M.ps ForcPlots
+mv Ba-vs-Br.ps ForcPlots
+mv Ba-vs-Br_moment.ps ForcPlots
+mv Ba-vs-Br_forc2D.ps ForcPlots
+mv B-vs-M_forc2D.ps ForcPlots
+mv forc2D.ps ForcPlots
+mv forc3D-a.ps ForcPlots
+mv forc3D-b.ps ForcPlots
+mv susc.ps ForcPlots
+#mv rhodxdy.grd ForcPlots
+#mv rhodxdyn.grd ForcPlots
+#mv rhodxdyr.grd ForcPlots
+mv rhodxdyrn.grd ForcPlots
+#mv rhohys.grd ForcPlots
+
+
+rm text.xy intens.grd color.cpt junk1 junk2 junk3 junk3.grd junk.grd 
+rm tri.xyz tri.grd tripath.xyz  cont_int
+rm filt.xyz filt.grd filt4.grd 
+rm filt5.grd rhodx.xyz rhodxr.grd rhodxr.xyz rhodxrn.grd color2.cpt
+
+#rm filt1.grd filt3.grd 
+rm sfilt.grd sfilt2.xyz sfilt2.grd
+rm rhodx.grd rhodxdy.xyz rhodxdyr.xyz
+rm ga2 zero.grd zero.xy zerofilt.grd 
+rm rhodxdy.grd rhodxdyn.grd rhodxdyr.grd rhohys.grd
+#rm rhodxdyrn.grd 
+rm Ha-vs-Hr-vs-M.raw drift.raw
+rm H-vs-M.out Ha-vs-Hr.out Ha-vs-Hr-vs-M.out drift.out
+rm rridge.out
+

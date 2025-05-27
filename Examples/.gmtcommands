@@ -1,0 +1,28 @@
+# GMT common arguments shelf
+-Ba0.5f0.1:Normalized Susc:/:  :
+-Jx1
+-Jz2.5
+-R0/8.5/0/11
+-X1.0
+-x-1.0
+-Y1.0
+-y-1.0
+EOF
+
+-Y1.0
+-y-1.0
+EOF
+WeSn
+-Jx+4.5E-02/+4.5E-02
+-Jz2.5
+-R0/110/-55/55
+-X1.0
+-x-1.0
+-Y1.0
+-y-1.0
+EOF
+
+-Y1.0
+-y-1.0
+EOF
+EOF

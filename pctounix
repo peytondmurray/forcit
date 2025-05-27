@@ -1,0 +1,23 @@
+#!/bin/sh
+# Useage:
+# pctounix file1 file2
+#	file1 = $1 = the input file
+#	file2 = $2 = the output file
+# pctounix converts file $1 from a PC format that
+# contains carriage returns with ^M at the
+# end of the lines to a Unix file $2 with 
+# the ^M's removed. 
+# It also removes the ^Z at the end of the file
+# To run
+# pctounix filein fileout
+# The '\015' is  the control M (^M) character that occurs at the end of 
+#	lines of PC files, which is a carriage return.
+# The '\032' is  the control Z (^Z) character that occurs at the end of 
+#	files of PC (dos) files, which is a carriage return.
+# Type
+#	man ascii
+# for more information
+# Written by Gary Acton August 2003
+# The control Z can also be removed with the following:
+#	sed '/^Z/d' $1 > $2
+tr -d '\015' < $1 | tr -d '\032'  > $2

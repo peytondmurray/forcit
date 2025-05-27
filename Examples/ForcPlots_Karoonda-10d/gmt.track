@@ -1,0 +1,31 @@
+#! /bin/csh
+ 
+set X1        =   -40.0000
+set X2        =    20.0000
+set Label     = 'Distance(mT)'
+set scaleX    =      .0833
+set Y1        =     -.1000
+set Y2        =     1.0000
+set scaleY    =     6.0000
+set ticX      = a1.0E+01f2.0E+00
+set ticY      = a0.10f0.02
+grdtrack track.out -Grhodxdyrn.grd -H > track.xy
+sed 1d track.xy | awk '{ print $2, $4 }' > t
+cp /Users/acton/Applications/src/forc/.gmtdefaults .
+###### File appended on to the output from track.f ######
+set r = `minmax track.xy -C -H`
+#echo Minimum $r[7]
+#echo Maximum $r[8]
+echo $r[7] > ga
+set Y1 = `cat ga | awk '{ printf ("%s\n", $1-0.02) }'`
+echo $r[8] > ga
+set Y2 = `cat ga | awk '{ printf ("%s\n", $1+0.02) }'`
+set scaleY = `cat ga | awk '{ printf ("%s\n", 5.0/($1+0.1) ) }'`
+rm ga
+psxy  t -R$X1/$X2/$Y1/$Y2 -Jx$scaleX/$scaleY \
+   -B$ticX\ :$Label\::,"":/$ticY\ :"Normalized Rho"::,""::."FORC Track":WeSn \
+   -W4/255/000/000 -M -P -K -X1.0 -Y1.0 > fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+rm t
+mv fig.ps track.ps

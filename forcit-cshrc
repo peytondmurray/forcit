@@ -1,0 +1,67 @@
+# @(#)Cshrc 1.6 91/09/05 SMI
+#################################################################
+#         .cshrc file
+#################################################################
+
+source /sw/bin/init.csh
+set path = (/bin /sbin /sw/bin /sw/sbin /usr/bin /usr/sbin .)
+set path = ($path /usr/local/bin)
+set path = ($path /usr/local/lib)
+set path = ($path /usr/libexec)
+set path = ($path /Applications/Local/bin)
+setenv MANPATH .:/sw/share/man:/usr/share/man:/usr/local/man:/usr/local/share/man
+setenv INFOPATH /sw/share/info:/sw/info:/usr/local/share/info:/usr/local/lib/info:/usr/local/info:/usr/share/info
+
+#####################################################################
+#My personal favorite aliases, etc. - Gary Acton  ########
+#####################################################################
+set history=40                                # save last 40 commands
+#set noclobber                                # don't allow '>' to overwrite
+#set ignoreeof                                # 'logout' (not ^d) logs you out
+limit coredumpsize 0
+umask 022
+alias back 'set back=$old; set old=$cwd; cd $back; unset back; dirs'
+alias cd 'set old=$cwd; chdir \!*'
+alias cdl 'ls \!*; cd \!$'
+alias ch 'chmod 775 *'
+alias com compress 
+alias dir 'ls -l'
+alias f finger
+alias Find find . -name \\\*\!:1\\\* -a -print
+alias finka 'fink apropos'
+alias finkd 'fink describe'
+alias finkh 'fink -h'
+alias finki 'fink install'
+alias finkl 'fink list'
+#alias h history
+alias h 'history \!* | head -39 | more'
+alias help man
+alias j 'jobs -l'
+alias key 'man -k'
+alias lprdee lpr -h  -Ptweedle_dee
+alias lpqdee lpq -Ptweedle_dee
+alias lt 'ls -lt | more '
+alias lth 'ls -lt | more | head -30'
+alias mo more
+alias list cat
+alias type more
+alias pwd 'echo $cwd'
+alias shell 'echo $SHELL'
+alias unc uncompress
+alias up uptime
+alias zm 'zcat \!$ | mo'
+alias bye           logout
+alias ciao          logout
+alias adios         logout
+####################################################################
+# Some example aliases for changing directory to commonly used 
+#   directories.
+####################################################################
+#SET HOME FOR ACTON
+#setenv ACTON /Users/acton
+#setenv ACTONM /Users/acton/Main
+#setenv ACTONapp /Users/acton/Applications
+#setenv GMTHOME /sw
+#alias ca cd ${ACTONM}
+#alias cf cd ${ACTONM}/FORC
+#alias cm cd ${ACTON}/Desktop/Micromag_Data

@@ -1,0 +1,140 @@
+#! /bin/sh
+# Written by Gary Acton 2005/2006 
+
+# Define APPL to be the directory in which the folder "forc" is stored.
+APPL=/Applications/Local/src
+#APPL=/Users/acton/Applications/src
+
+echo "**********************************************************************"
+echo " This program reads a FORC data file that is in either the            "
+echo " old or new Princeton Micromag format. The file type can be           "
+echo " either Unix or PC format. If PC format, it will be automatically     "
+echo " converted to Unix format.  It then produces 9 plots that are         "
+echo " placed in the directory named ForcPlots, which will be created       "
+echo " if it does not already exist. The plots produced are:                "
+echo "      drift.ps = The relative instrument drift.                       "
+echo "      B-vs-M.ps = The observations in field versus moment space.      "
+echo "         Currently every 10th FORC is plotted.                        "
+echo "      Ba-vs-Br.ps = The observation locations plotted in Ba           "
+echo "         the applied field) versus Br (the reversed field) space.     "
+echo "      Ba-vs-Br_moment.ps = The moment plotted in Ba vs Br space.      "
+echo "      reversible-ridge.ps = The quasi-reversible = the lowest part    "
+echo "         of the FORC distribution along the Bb axis for Bc ~ 0.       "
+echo "      Ba-vs-Br_forc2D.ps = The Forc diagram plotted in Ba vs Br space."
+echo "      B-vs-M_forc2D.ps = The Forc diagram plotted in B vs M space.    "
+echo "      forc2D.ps = The Forc diagram plotted in Bc vs Bb space.         "
+echo "      forc3D-a.ps = A 3D Forc diagram plotted in Bc vs Bb space, with "     
+echo "         the viewpoint at an azimuth of 130 degrees.                  " 
+echo "      forc3D-b.ps = A 3D Forc diagram plotted in Bc vs Bb space, with "     
+echo "         the viewpoint at an azimuth of 50 degrees.                   " 
+echo "      susc.ps = The micro-susceptibility.                             "     
+echo "**********************************************************************"
+
+help()
+{
+  echo " "
+  echo "To run program forcit, type the word 'forcit' followed by a space"
+  echo "and then the data file name or use one of the options (-h, -d, or"
+  echo "For example:"
+  echo "forcit filename     <-- generic set of FORC plots" 
+  echo "forcit -h           <-- gives this help message "
+  echo "forcit -c           <-- this removes (cleans) the ForcPlots file by removing the *.grd"
+  echo "forcit -d filename  <-- uses default values in file forcit.defaults"
+  echo "forcit -f filename  <-- produces only the forc2D.ps plot"
+  echo "forcit -fd filename <-- produces only the forc2D.ps plot using default values in forcit.defaults"
+  echo " "
+}
+
+forcclean()
+{
+  echo " "
+  echo "forcit -c is removing the *.grd files from directory ForcPlots"
+  rm ForcPlots/*.grd
+}
+
+forcdefault()
+{
+  pctounix $forcinput unixfile 
+  readforc < unixfile
+  rm unixfile
+  echo "set filename  = " $forcinput >> gmt.forc
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.forc
+  echo "cp $APPL/forc/cont_int ." >> gmt.forc
+  cat forcit.defaults >> gmt.forc
+  cat $APPL/forc/forcall.gmt >> gmt.forc
+  chmod a+x gmt.forc
+  gmt.forc
+}
+
+forc2Donly()
+{
+  pctounix $forcinput unixfile 
+  readforc < unixfile
+  rm unixfile
+  echo "set filename  = " $forcinput >> gmt.forc
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.forc
+  echo "cp $APPL/forc/cont_int ." >> gmt.forc
+  cat $APPL/forc/forc2d.gmt >> gmt.forc
+  chmod a+x gmt.forc
+  gmt.forc
+}
+
+forc2Donlydefault()
+{
+  pctounix $forcinput unixfile 
+  readforc < unixfile
+  rm unixfile
+  echo "set filename  = " $forcinput >> gmt.forc
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.forc
+  echo "cp $APPL/forc/cont_int ." >> gmt.forc
+  cat forcit.defaults >> gmt.forc
+  cat $APPL/forc/forc2d.gmt >> gmt.forc
+  chmod a+x gmt.forc
+  gmt.forc
+}
+
+forcnow()
+{
+  pctounix $forcinput unixfile 
+  readforc < unixfile
+  rm unixfile
+  echo "set filename  = " $forcinput >> gmt.forc
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.forc
+  echo "cp $APPL/forc/cont_int ." >> gmt.forc
+  cat forcit.defaults >> gmt.forc
+  cat $APPL/forc/forcnow.gmt >> gmt.forc
+  chmod a+x gmt.forc
+  gmt.forc
+}
+
+forcgeneric()
+{
+  pctounix $forcinput unixfile 
+  readforc < unixfile
+  rm unixfile
+  echo "set filename  = " $forcinput >> gmt.forc
+  echo "cp $APPL/forc/.gmtdefaults ." >> gmt.forc
+  echo "cp $APPL/forc/cont_int ." >> gmt.forc
+  cat $APPL/forc/forcall.gmt >> gmt.forc
+  chmod a+x gmt.forc
+  gmt.forc
+}
+
+# The following script is based on the example given in the Shell programming web site:
+# http://mercury.chem.pitt.edu/~sasha/LinuxFocus/English/September2001/article216.shtml
+
+while [ -n "$1" ]; do
+case $1 in
+    -h) help;shift 1;; # function help is called
+    -c) forcinput=$2;forcclean;  shift 1;; # This cleans the *.grd files out of the ForcPlots directory
+    -d) forcinput=$2;forcdefault;shift 2;; # This is the option that uses the forcit.default file; -d takes an argument -> shift by 2 
+    -f) forcinput=$2;forc2Donly; shift 2;; # This produces only the plot forc2D.ps
+    -fd) forcinput=$2;forc2Donlydefault; shift 2;; # This produces only the plot forc2D.ps using the forcit.default file -> shift by 2
+    -n) forcinput=$2;forcnow; shift 2;; # This produces only the plot forc2D.ps
+    -l) opt_l=$2;                shift 2;; # -l takes an argument -> shift by 2
+    -x) opt_x=1;                 shift 1;; # variable opt_f is set
+    --) shift;break;; # end of options
+    -*) echo "error: no such option $1. -h for help";exit 1;;
+    *) forcinput=$1;forcgeneric;shift 1;; # case with no argument, just an input file -> shift by 2
+esac
+done

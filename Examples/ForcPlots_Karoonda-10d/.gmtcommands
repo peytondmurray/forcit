@@ -1,0 +1,15 @@
+# GMT common arguments shelf
+-Ba1.0E+01f2.0E+00 :Distance(mT)::,:/a0.10f0.02 :Normalized Rho::,::.FORC Track:WeSn
+-Jx1
+-R0/8.5/0/11
+-X1.0
+-x-1.0
+-Y1.0
+-y-1.0
+EOF
+466474
+-X1.0
+-x-1.0
+-Y1.0
+-y-1.0
+EOF

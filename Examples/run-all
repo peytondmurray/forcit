@@ -1,0 +1,26 @@
+#!/bin/sh
+# Shell script to make FORC plots for 5 samples
+
+#If directories all ready exist, remove them
+rm -r ForcPlots_1256D-24R-1-128
+rm -r ForcPlots_1256D-49R-2-099b
+rm -r ForcPlots_Alvin-dive-3935b
+rm -r ForcPlots_Hematite-298-F
+rm -r ForcPlots_Karoonda-10d
+
+forcit 1256D-24R-1-128.frc
+mv ForcPlots ForcPlots_1256D-24R-1-128
+
+forcit 1256D-49R-2-099b.frc
+mv ForcPlots ForcPlots_1256D-49R-2-099b
+
+forcit Alvin-dive-3935b.frc
+mv ForcPlots ForcPlots_Alvin-dive-3935b
+
+forcit Hematite-298-F
+mv ForcPlots ForcPlots_Hematite-298-F
+
+forcit Karoonda-10d.frc
+mv ForcPlots ForcPlots_Karoonda-10d
+cd ForcPlots_Karoonda-10d
+trackit 0 -40 40 20 0.1

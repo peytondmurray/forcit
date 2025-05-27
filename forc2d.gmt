@@ -1,0 +1,141 @@
+echo '******************************************'
+echo '       Starting to make plots             '
+echo '******************************************'
+
+# *********** Plot Moment Drift ***********
+cat drift.out | awk '{ printf ("%s %s\n", $1, $2) }' | \
+   psxy -R$bdryF1/$bdryF2/$bdryD1/$bdryD2 -Jx$scaleF/$scaleD \
+   -B$ticF\ :"FORC #"::,"":/$ticD\ :"Relative Drift"::,""::."Drift of Moment (red) & Variation of Field (blue)":WeSn \
+   -W4/000/000/255 -M -P -K -X1.0 -Y1.0 > fig.ps
+
+cat drift.out | awk '{ printf ("%s %s\n", $1, $3) }' | \
+   psxy -R$bdryF1/$bdryF2/$bdryD1/$bdryD2 -Jx$scaleF/$scaleD \
+   -B$ticF\ :" "::,"":/$ticD\ :" "::,""::." ":WeSn \
+   -W4/255/000/000 -M -O -K  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:
+0.5 8.0 14 0 0 LB Sample:
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps drift.ps
+
+echo 'Figure drift.ps is done'
+
+# *********** Triangulate Data ***********
+triangulate Ha-vs-Hr-vs-M.out -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -I$step1 -V -Gtri.grd -M > tripath.xyz
+grd2xyz tri.grd -H > tri.xyz
+grdinfo tri.grd
+
+# *********** Filter data ***********
+# Note the filter is a 2D Gaussian filter with radius =  0.5*$filt or diameter = $filt (diameter ~ 5 sigma; see GMT manual). 
+grdfilter tri.grd -Gfilt.grd -D0 -Fg$filt
+# Two lines below are tests with further filtering, which proved not to be useful
+#grdfft filt.grd -F-/-/$Xfilt2/$Xfilt1 -L -V -Gfiltx.grd
+#mv filtx.grd filt.grd
+grd2xyz filt.grd -H  > filt.xyz
+
+################################################################
+echo '******************************************'
+echo '       Taking partial derivatives'
+echo '******************************************'
+
+zerodiag -s $stepx > zero.xy
+grdmask zero.xy -Gzero.grd -I$step1 -R$bdryHa1/$bdryHa2/$bdryHr1/$bdryHr2 -H1 -N1/0/0 
+grdfilter zero.grd -Gzerofilt.grd -D0 -Fg$stepx
+
+# NOTE, rhodx.grd is the Micro Susceptibility and is plotted below.
+grdmath filt.grd DDX -V = rhodx.grd
+
+grdmath rhodx.grd DDY zerofilt.grd MUL -V = rhodxdy.grd
+# Filter again with the same filter as above, but on rho rather than moment
+grdfilter rhodxdy.grd -Grhodxdyf.grd -D0 -Fg$filt
+mv rhodxdyf.grd rhodxdy.grd
+grdinfo rhodxdy.grd
+grd2xyz rhodxdy.grd -H > rhodxdy.xyz
+# WAIT TO PLOT IN ORDER TO FIND GOOD NORMALIZATION FACTOR
+################################################################
+
+
+################################################################
+echo '******************************************'
+echo 'Transforming the FORC Data into Bc-vs-Bb space'
+echo '******************************************'
+head -1 rhodxdy.xyz > ga2
+sed 1d rhodxdy.xyz | sed -e 1,10000000000s/\	/\ /g | awk '{ printf ("%#13.6e %#13.6e %#13.6e\n", $1, $2, $3) }' >> ga2
+newcoord < ga2 > rhodxdyr.xyz
+surface rhodxdyr.xyz -R-$stepx/$Hc2/$Hb1/$Hb2 -I$step1 -T0.50 -Grhodxdyr.grd
+
+# The following filtering is used only to find a Maximum for scaling the plot
+grdsample -R$stepx/$Hc2/$Hb1/$Hb2 rhodxdyr.grd -I$step1 -Gsfilt.grd
+grdmath sfilt.grd ABS = sfilt2.grd
+grd2xyz sfilt2.grd -H -S > sfilt2.xyz
+set r = `minmax sfilt2.xyz -C -H -I$step1`
+echo Minimum $r[5]
+echo Maximum $r[6]
+# NOTE, the 1/2 factor below is needed to define rho in a manner consistent with
+#      equation (1) of Pike (Physical Review B, 68, 2003).
+#      Prior publications left out the 1/2 factor that occurs in Eqn 1.
+#      The factor is necessary to equate FORC distributions to Preisach distributions
+#      for hysterons. Because I normalize the distribution for plotting, this factor
+#      only affects the value printed for the maximum rho, which is the
+#      variable s[2] rather than r[6].
+echo $r[5] | awk '{ print $1/2.0 } ' > temprho
+echo $r[6] | awk '{ print $1/2.0 } ' >> temprho
+set s = `minmax temprho -C`
+set Pike = "after correction for factor of 1/2 in equation 1 of Pike (Physical Review B, 68, 2003)."
+echo Minimum $s[1] $Pike
+echo Maximum $s[2] $Pike
+rm temprho
+
+grdmath rhodxdyr.grd $r[6] DIV -0.5 MUL = filt4.grd
+grdclip filt4.grd -Grhodxdyrn.grd -Sa1.01/1.01 -Sb-0.2/-0.2 
+grdinfo rhodxdyrn.grd
+
+# Define color palette, which is used for all other Forc diagrams (2D, 3D, Hysteresis space, etc.)
+grd2cpt rhodxdyrn.grd -Z > color.cpt
+grdgradient rhodxdyrn.grd -A50 -Ne0.5 -Gintens.grd
+grdview rhodxdyrn.grd -R$Hc1/$Hc2/$Hb1/$Hb2 -Jx$scaleHc/$scaleHb -Ccolor.cpt -Iintens.grd -Qi100 \
+   -B$ticFORC\ :"B@-c@- (mT)"::,"":/$ticFORC\ :"B@-b@- (mT)"::,""::."FORC Diagram":WeSn \
+   -P -K -X1.0 -Y1.0 > fig.ps
+grdcontour rhodxdyrn.grd -Ccont_int -R -Jx -O -K -S4 >> fig.ps
+psscale -D+3.9i/+6.85i/2.0i/0.2ih -Ba0.5f0.1:"Normalized Rho":/:"  ": -Ccolor.cpt -I -K -O >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -K -O -X-1.0 -Y-1.0 << END >> fig.ps
+0.5 8.3 14 0 0 LB File:  
+0.5 8.0 14 0 0 LB Sample:  
+0.5 7.7 14 0 0 LB Rho Max:  
+END
+echo "> Sample ID and related information" > text.xy
+echo "1.4 8.3 14 0 0 LB " $filename >> text.xy
+echo "1.4 8.0 14 0 0 LB " $sampleid >> text.xy
+echo "1.4 7.7 14 0 0 LB " $s[2] " Am@+2@+/mT@+2@+">> text.xy
+pstext text.xy -R -Jx -H -K -O  >> fig.ps
+pstext -R0/8.5/0/11 -Jx1 -O -X-1.0 -Y-1.0 << END >> fig.ps
+END
+mv fig.ps forc2D.ps
+echo 'Figure forc2D.ps done'
+
+mkdir ForcPlots
+mv gmt.forc ForcPlots
+mv drift.ps ForcPlots
+mv forc2D.ps ForcPlots
+mv rhodxdyrn.grd ForcPlots
+
+
+rm text.xy intens.grd color.cpt
+rm tri.xyz tri.grd tripath.xyz  cont_int
+rm filt.xyz filt.grd filt4.grd 
+
+rm sfilt.grd sfilt2.xyz sfilt2.grd
+rm rhodx.grd rhodxdy.xyz rhodxdyr.xyz
+rm ga2 zero.grd zero.xy zerofilt.grd 
+rm rhodxdy.grd  rhodxdyr.grd 
+rm Ha-vs-Hr-vs-M.raw drift.raw
+rm H-vs-M.out Ha-vs-Hr.out Ha-vs-Hr-vs-M.out drift.out
+rm rridge.out
+
+
